@@ -1,0 +1,46 @@
+### Test Product Search API
+
+# 1. Simple search
+GET http://localhost:8080/product/search?searchTerm=phone&page=0&size=10
+
+###
+
+# 2. Search with category filter
+GET http://localhost:8080/product/search?searchTerm=laptop&category=electronics&page=0&size=10
+
+###
+
+# 3. Price range search
+GET http://localhost:8080/product/search?minPrice=100&maxPrice=1000&page=0&size=10
+
+###
+
+# 4. Advanced search via POST
+POST http://localhost:8080/product/search
+Content-Type: application/json
+
+{
+  "searchTerm": "phone",
+  "category": "electronics",
+  "minPrice": 200,
+  "maxPrice": 800,
+  "sortBy": "name",
+  "sortDirection": "asc",
+  "page": 0,
+  "size": 20
+}
+
+###
+
+# 5. Get product name suggestions
+GET http://localhost:8080/product/suggestions/names?prefix=pho
+
+###
+
+# 6. Get category suggestions  
+GET http://localhost:8080/product/suggestions/categories?prefix=ele
+
+###
+
+# 7. Get all products (no filters)
+GET http://localhost:8080/product/getAllProducts?page=0&size=10

@@ -4,8 +4,7 @@ import com.app.ecom.dto.userDtos.UserRequest;
 import com.app.ecom.dto.userDtos.UserResponse;
 import com.app.ecom.exception.ConflictException;
 import com.app.ecom.exception.UserNotFoundException;
-import com.app.ecom.mapper.Mappers;
-import com.app.ecom.repository.AddressRepo;
+import com.app.ecom.mapper.UserMapper;
 import com.app.ecom.repository.UserRepo;
 import com.app.ecom.entity.User;
 import jakarta.transaction.Transactional;
@@ -22,16 +21,11 @@ import org.springframework.stereotype.Service;
 public class UserService {
 
     private final UserRepo userRepo;
-
-    private final AddressRepo addressRepo;
+    private final UserMapper userMapper;
 
     public Page<UserResponse> getAllUsers(Pageable pageable) {
-
-        // Fetch users by page
         Page<User> userPage = userRepo.findAll(pageable);
-
-
-        return userPage.map(Mappers::mapToUserResponse);
+        return userPage.map(userMapper::toResponse);
     }
 
 
@@ -43,12 +37,12 @@ public class UserService {
                 throw new ConflictException("Phone number already in use");
             }
 
-            User newUser = Mappers.mapToUser(userRequest);
-            userRepo.save(newUser);
+            User newUser = userMapper.toEntity(userRequest);
+            User savedUser = userRepo.save(newUser);
 
-            log.info("User created with id: {}", newUser.getId());
+            log.info("User created with id: {}", savedUser.getId());
 
-            return Mappers.mapToUserResponse(newUser);
+            return userMapper.toResponse(savedUser);
 
         } catch (DataAccessException e) {
             log.error("Database error while saving user: {}", userRequest, e);
@@ -58,12 +52,12 @@ public class UserService {
 
 
     public UserResponse getUserById(Long id) {
-        User user=userRepo.findById(id)
-                .orElseThrow(()-> new UserNotFoundException("Cannot find user with id "+id));
+        User user = userRepo.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("Cannot find user with id " + id));
 
-        log.info("User found with id :{}",id);
+        log.info("User found with id: {}", id);
 
-        return Mappers.mapToUserResponse(user);
+        return userMapper.toResponse(user);
     }
 
     @Transactional
@@ -76,14 +70,12 @@ public class UserService {
             throw new ConflictException("Phone number already in use by another user");
         }
 
-        existingUser.setFirstName(userRequest.getFirstName());
-        existingUser.setLastName(userRequest.getLastName());
-        existingUser.setPhoneNumber(userRequest.getPhoneNumber());
-        existingUser.setEmail(userRequest.getEmail());
+        // Use MapStruct for partial updates
+        userMapper.updateUserFromRequest(userRequest, existingUser);
 
         User updatedUser = userRepo.save(existingUser);
 
-        return Mappers.mapToUserResponse(updatedUser);
+        return userMapper.toResponse(updatedUser);
     }
 
 

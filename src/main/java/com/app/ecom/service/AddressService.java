@@ -4,7 +4,7 @@ import com.app.ecom.dto.address.AddressDto;
 import com.app.ecom.entity.Address;
 import com.app.ecom.entity.User;
 import com.app.ecom.exception.UserNotFoundException;
-import com.app.ecom.mapper.Mappers;
+import com.app.ecom.mapper.AddressMapper;
 import com.app.ecom.repository.AddressRepo;
 import com.app.ecom.repository.UserRepo;
 import lombok.AllArgsConstructor;
@@ -17,40 +17,35 @@ import java.util.stream.Collectors;
 public class AddressService {
 
     private final AddressRepo addressRepo;
-
     private final UserRepo userRepo;
+    private final AddressMapper addressMapper;
 
-    public AddressDto addAddress(AddressDto addressDto,Long userId) {
-            User user = userRepo.findById(userId)
-                    .orElseThrow(() -> new UserNotFoundException("User Not found"));
+    public AddressDto addAddress(AddressDto addressDto, Long userId) {
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User Not found"));
 
-            // converting addressDto to address and assigning to one address
-            Address address = Mappers.toAddress(addressDto);
+        Address address = addressMapper.toEntity(addressDto);
+        address.setUser(user);
 
-            // also we have to set user for that address
-            address.setUser(user);
+        Address savedAddress = addressRepo.save(address);
 
-            Address savedAddress = addressRepo.save(address);
-
-            return Mappers.toAddressDto(savedAddress);
+        return addressMapper.toDto(savedAddress);
     }
 
-    public List<AddressDto> getAllAddressesByUserId(Long userId){
-
+    public List<AddressDto> getAllAddressesByUserId(Long userId) {
         userRepo.findById(userId).orElseThrow(() -> new UserNotFoundException("User Not found"));
 
         List<Address> addresses = addressRepo.findByUserId(userId);
 
         return addresses.stream()
-                .map(Mappers::toAddressDto)
+                .map(addressMapper::toDto)
                 .collect(Collectors.toList());
-    };
+    }
 
 
-    // put mapping  fully replace
     public AddressDto updateAddress(AddressDto addressDto, Long userId, Long addressId) {
-
-        User user = userRepo.findById(userId).orElseThrow(() -> new UserNotFoundException("User Not found"));
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User Not found"));
 
         Address address = addressRepo.findById(addressId)
                 .orElseThrow(() -> new RuntimeException("Address not found"));
@@ -59,21 +54,17 @@ public class AddressService {
             throw new RuntimeException("Address does not belong to this user");
         }
 
-        address.setId(addressId);
-        address.setStreet(addressDto.getStreet());
-        address.setCity(addressDto.getCity());
-        address.setState(addressDto.getState());
-        address.setZipcode(addressDto.getZipcode());
-        address.setCountry(addressDto.getCountry());
+        // Use MapStruct to map all fields
+        Address updatedAddress = addressMapper.toEntity(addressDto);
+        updatedAddress.setId(addressId);
+        updatedAddress.setUser(user);
 
-        address.setUser(user);
-
-        Address updated =  addressRepo.save(address);
-        return Mappers.toAddressDto(updated);
+        Address saved = addressRepo.save(updatedAddress);
+        return addressMapper.toDto(saved);
     }
 
     public AddressDto patchAddress(Long userId, Long addressId, AddressDto addressDto) {
-        User user = userRepo.findById(userId)
+        userRepo.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         Address address = addressRepo.findById(addressId)
@@ -83,16 +74,11 @@ public class AddressService {
             throw new RuntimeException("Address does not belong to this user");
         }
 
-        // Only update non-null fields by this logic we are only updating those field whose value
-        //  we are getting like here if state value is nonnull that means use try to update state value
-        if (addressDto.getStreet() != null) address.setStreet(addressDto.getStreet());
-        if (addressDto.getCity() != null) address.setCity(addressDto.getCity());
-        if (addressDto.getState() != null) address.setState(addressDto.getState());
-        if (addressDto.getZipcode() != null) address.setZipcode(addressDto.getZipcode());
-        if (addressDto.getCountry() != null) address.setCountry(addressDto.getCountry());
+        // Use MapStruct for partial updates (PATCH operation)
+        addressMapper.updateAddressFromDto(addressDto, address);
 
         Address updated = addressRepo.save(address);
-        return Mappers.toAddressDto(updated);
+        return addressMapper.toDto(updated);
     }
 
 
@@ -110,6 +96,5 @@ public class AddressService {
         }
 
     }
-
 
 }
