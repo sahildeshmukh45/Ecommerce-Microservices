@@ -40,7 +40,12 @@ public class Product {
     @OrderBy("displayOrder ASC")
     private List<ProductImage> images = new ArrayList<>();
 
+//    @OneToMany(mappedBy = "product",cascade =CascadeType.ALL, orphanRemoval = true)
+//    private List<CartItem> cartItem;
+
     private Boolean isActive = true;
+
+
 
     @CreationTimestamp
     private LocalDateTime createdDate;

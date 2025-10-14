@@ -11,7 +11,7 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 @Mapper(componentModel = "spring", 
         uses = {CategoryMapper.class, ProductImageMapper.class},
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-public interface ProductMapper {
+public interface  ProductMapper {
 
     @Mapping(target = "category", ignore = true) // Will be set manually in service
     @Mapping(target = "images", ignore = true)   // Will be handled separately

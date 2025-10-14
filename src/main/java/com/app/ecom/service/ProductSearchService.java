@@ -40,7 +40,7 @@ public class ProductSearchService {
                 
                 // Apply additional filters in memory (for small dataset this is acceptable)
                 List<Product> filteredProducts = productPage.getContent().stream()
-                    .filter(p -> searchRequest.getCategoryId() == null || 
+                    .filter(p -> searchRequest.getCategoryId() == null ||
                                (p.getCategory() != null && p.getCategory().getId().equals(searchRequest.getCategoryId())))
                     .filter(p -> searchRequest.getCategoryName() == null || 
                                (p.getCategory() != null && p.getCategory().getName().equalsIgnoreCase(searchRequest.getCategoryName())))
@@ -110,9 +110,9 @@ public class ProductSearchService {
 
     private Pageable createPageable(ProductSearchRequest searchRequest) {
         Sort sort = Sort.by(
-            searchRequest.getSortDirection().equalsIgnoreCase("desc") 
-                ? Sort.Direction.DESC 
-                : Sort.Direction.ASC,
+                // in which direction we have to sort like ascending or descending
+            searchRequest.getSortDirection().equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC,
+                // by which thing we have to sort like by name, price or any filed
             searchRequest.getSortBy()
         );
         

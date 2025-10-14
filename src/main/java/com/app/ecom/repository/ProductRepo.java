@@ -16,7 +16,7 @@ public interface ProductRepo extends JpaRepository<Product, Long> {
 
     // Optimized full-text search with GIN index support
     @Query(value = """
-        SELECT p.* FROM product p 
+        SELECT p.* FROM product p
         LEFT JOIN category c ON p.category_id = c.id
         WHERE p.is_active = true 
         AND (
