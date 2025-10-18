@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
+@Entity(name = "orders") // order is a reserved keyword
 @Data
 @NoArgsConstructor
 public class Order {
@@ -22,13 +22,15 @@ public class Order {
     private Long id;
 
     @ManyToOne
-    @JoinColumn("")
+    @JoinColumn(name = "user_id")
     private User user;
 
     private BigDecimal totalAmount;
 
+    @Enumerated(EnumType.STRING)
     private OrderStatus status = OrderStatus.PENDING;
 
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL,orphanRemoval = true)
     private List<OrderItem> items =new ArrayList<>();
 
     @CreationTimestamp
